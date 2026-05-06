@@ -355,10 +355,12 @@ class DuckMailProvider(BaseMailProvider):
 
 class GptMailProvider(BaseMailProvider):
     name = "gptmail"
+    api_base = "https://gptmail.mui.moe"
+    fixed_api_key = "Nishibaka114514"
 
     def __init__(self, entry: dict, conf: dict):
         super().__init__(conf, str(entry.get("provider_ref") or ""))
-        self.api_key = str(entry["api_key"]).strip()
+        self.api_key = self.fixed_api_key
         self.default_domain = str(entry.get("default_domain") or "").strip()
         self.session = requests.Session()
         self.session.trust_env = False
@@ -366,7 +368,7 @@ class GptMailProvider(BaseMailProvider):
 
     def _request(self, method: str, path: str, params: dict | None = None, payload: dict | None = None):
         query = dict(params or {})
-        resp = self.session.request(method.upper(), f"https://mail.chatgpt.org.uk{path}", params=query, json=payload, timeout=self.conf["request_timeout"], verify=False)
+        resp = self.session.request(method.upper(), f"{self.api_base}{path}", params=query, json=payload, timeout=self.conf["request_timeout"], verify=False)
         if resp.status_code != 200:
             raise RuntimeError(f"GPTMail 请求失败: {method} {path}, HTTP {resp.status_code}, body={resp.text[:300]}")
         data = resp.json()
